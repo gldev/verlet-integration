@@ -2,6 +2,139 @@
 <head></head>
 <body>
 <canvas id="renderer" width="800" height="600"></canvas>
-<script src="./main.js"></script>
+<script>
+	window.onload = function() {	
+
+	let canvas = document.getElementById("renderer"),
+	context = canvas.getContext("2d"),
+	width = canvas.width = window.innerWidth,
+	height = canvas.height = window.innerHeight;
+
+	let gravity = 0.5,
+	bounce = 0.9,
+	friction = 0.999;
+	let points = [],
+	lines = [];
+
+	points.push({
+		x: 100,
+		y: 100,
+		oldx: 95,
+		oldy: 95,
+	},
+	{
+		x: 200,
+		y: 100,
+		oldx: 200,
+		oldy: 100,
+	},
+	{
+		x: 100,
+		y: 200,
+		oldx: 100,
+		oldy: 200,
+	});
+
+	lines.push({
+		p0: points[0],
+		p1: points[1],
+		length: distance(points[0], points[1]),
+	},
+	{
+		p0: points[0],
+		p1: points[2],
+		length: distance(points[0], points[2]),
+	});
+
+
+
+	update();
+
+	function update() {
+		updatePoints();
+		updateLines();
+		renderPoints();
+		renderLines();
+		requestAnimationFrame(update);
+	}
+
+	function updatePoints() {
+		for (var i = 0; i < points.length; i++){
+			var point = points[i],
+			dx = (point.x - point.oldx) * friction,
+			dy = (point.y - point.oldy) * friction;
+
+			point.oldx = point.x;
+			point.oldy = point.y;
+
+			point.x += dx;
+			point.y += dy;
+			point.y += gravity;
+
+			if(point.x > width){
+				point.x = width;
+				point.oldx = point.x + dx * bounce;
+			} else if (point.x < 0) {
+				point.x = 0;
+				point.oldx = point.x + dx * bounce;
+			}
+			if(point.y > height){
+				point.y = height;
+				point.oldy = point.y + dy * bounce;
+			} else if (point.y < 0) {
+				point.y = 0;
+				point.oldy = point.y + dy * bounce;
+			}
+
+		}
+	}
+
+	function updateLines() {
+		for (var i = 0; i < lines.length; i++) { 
+			var line = lines[i],
+			dx = line.p1.x - line.p0.x,
+			dy = line.p1.y - line.p0.y,
+			distance = Math.sqrt(dx * dx + dy * dy),
+			difference = line.length - distance,
+			percent = difference / distance / 2,
+			offsetx = dx * percent,
+			offsety = dy * percent;
+
+			line.p0.x -= offsetx;
+			line.p0.y -= offsety;
+
+			line.p1.x += offsetx;
+			line.p1.y += offsety;
+		}
+	}
+
+	function renderLines() {
+		context.beginPath();
+		for (var i = 0; i < lines.length; i++){
+			var line = lines[i];
+			context.moveTo(line.p0.x, line.p0.y);
+			context.lineTo(line.p1.x, line.p1.y);
+		}
+		context.stroke();
+	}
+
+	function renderPoints() {
+		context.clearRect(0, 0, width, height);
+		for (var i = 0; i < points.length; i++){
+			var point = points[i];
+			context.beginPath()
+			context.arc(point.x, point.y, 5, 0, Math.PI * 2);
+			context.fill();
+		}
+	}
+
+	function distance(p0, p1) {
+		var dx = p1.x - p0.x,
+			dy = p1.y - p0.y;
+		return Math.sqrt(dx * dx + dy * dy);
+	}
+
+}
+</script>
 </body>
 </html>
